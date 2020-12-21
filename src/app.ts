@@ -6,8 +6,9 @@ function showHello(divName: string, name: string) {
 }
 
 // ----------------------------------------------
-enum Category {JavaScript, CSS, HTML, TypeScript, Angular}
-
+enum Category {JavaScript, CSS, HTML, TypeScript, Angular};
+type BookOrUndefined = Book | undefined;
+// Task 02.01. Basic Types
 function getAllBooks(): ReadonlyArray<object> {
     const books = <const>[
         {
@@ -128,7 +129,7 @@ function createCustomer(name: string, age?: number, city?: string): void{
 createCustomer('Tania', 22, 'Vinnytsia');
 createCustomer('Ann', null, 'Vinnytsia');
 
-function getBookByID(id: number): any{
+function getBookByID(id: number): BookOrUndefined{
     const books = getAllBooks();
     return books.find((book: {id: number}) => book.id ===id);
 }
@@ -179,3 +180,232 @@ function getTitles(...args: (string | number | boolean)[]): string[] {
 getTitles(1, true);
 getTitles('Evan');
 getTitles(false);
+
+// Task 03.04. Assertion Functions
+function assertStringValue(value: any): asserts value is string {
+    if(typeof value !== 'string'){
+        throw new Error('value should have been a string');
+    }
+}
+function bookTitleTransform(title: any): string | never {
+    assertStringValue(title);
+    return [...title].reverse().join();
+}
+let res = bookTitleTransform('Java Script');
+console.log(res);
+res = bookTitleTransform(123);
+console.log(res);
+
+// Task 04.01. Defining an Interface
+interface Book {
+    id: number;
+    title: string;
+    author: string;
+    available: boolean;
+    category: Category;
+    pages?: number;
+    // markDamaged?: (reason: string) => void;
+    markDamaged: DamageLogger;
+}
+function getAllBooks1(): ReadonlyArray<Book> {
+    const books: readonly Book[] = <const>[
+        {
+            id: 1,
+            category: Category.JavaScript,
+            title: 'Refactoring JavaScript',
+            author: 'Evan Burchard',
+            available: true,
+        },
+        {
+            id: 2,
+            category: Category.JavaScript,
+            title: 'JavaScript Testing',
+            author: 'Liang Yuxian Eugene',
+            available: false,
+        },
+        {
+            id: 3,
+            category: Category.CSS,
+            title: 'CSS Secrets',
+            author: 'Lea Verou',
+            available: true,
+        },
+        {
+            id: 4,
+            category: Category.HTML,
+            title: 'Mastering JavaScript Object-Oriented Programming',
+            author: 'Andrea Chiarelli',
+            available: true,
+        },
+    ];
+    return books;
+}
+function getBookByID1(id: number): Book | any{
+    const books = getAllBooks();
+    return books.find((book: {id: number}) => book.id ===id);
+}
+function printBook(book: Book): void {
+    console.log(`${book.title} + by + ${book.author}`);
+}
+// в литерале только свойства интерфейса
+const myBook: Book = {
+    id: 5,
+    title: 'Colors, Backgrounds, and Gradients',
+    author: 'Eric A. Meyer',
+    available: true,
+    category: Category.CSS,
+    // year: 2015,
+    // copies: 3
+    pages: 200,
+    markDamaged: (reason: string) => `Demaged: ${reason}`,
+};
+// printBook(myBook);
+// console.log(myBook.markDamaged('missing back cover'));
+
+// Task 04.02. Defining an Interface for Function Types
+interface DamageLogger {
+    (reason: string): void;
+}
+const logDamage: DamageLogger = (reason: string) => `Demaged: ${reason}`;
+// console.log(logDamage('missing back cover'));
+
+// Task 04.03. Extending Interface
+interface Person {
+    name: string;
+    email: string;
+}
+interface Author extends Person {
+    numBooksPublished: number;
+}
+interface Librarian extends Person {
+    department: string;
+    assistCustomer: (customName: string) => void;
+}
+const favoriteAuthor: Author = {
+    email: 't.s@gmail.com',
+    name: 'Tania',
+    numBooksPublished: 5,
+};
+const favoriteLibrarian: Librarian = {
+    name: 'Tania',
+    email: 't.s@gmail.com',
+    department: 'JS department',
+    assistCustomer: (customName: string) => logDamage(customName),
+};
+// console.log(favoriteAuthor);
+// console.log(favoriteLibrarian);
+
+// Task 04.04. Optional Chaining
+const offer: any = {};
+// console.log(offer.magazine);
+// console.log(offer.magazine.getTitle());
+
+// Task 04.05. Keyof Operator
+type BookProperties = keyof Book;
+function getBookProp(book: Book, prop: BookProperties): any {
+    if (typeof book[prop] === 'function'){
+        return book[prop][name];
+    }
+    return book[prop];
+}
+// console.log(getBookProp(getAllBooks()[0], 'title'));
+// console.log(getBookProp(getAllBooks()[0], 'markDamaged'));
+// console.log(getBookProp(getAllBooks()[0], 'isbn'));
+
+// Task 05.01. Creating and Using Classes
+abstract class ReferenceItem {
+    // title: string;
+    // year: number;
+    // constructor(newTitle: string, newYear: number) {
+    //     console.log('Creating a new ReferenceItem...');
+    //     this.title = newTitle;
+    //     this.year = newYear;
+    // }
+    private publisheR: string;
+    #id: number;
+    static department: string = 'Classical Literature';
+
+    get publisher(): string{
+        return this.publisheR.toUpperCase();
+    }
+
+    set publisher(newPublisher: string){
+        this.publisheR = newPublisher;
+    }
+
+    constructor(id: number, public title: string, protected year: number) {
+        console.log('Creating a new ReferenceItem...');
+        this.#id = id;
+    }
+
+    getID(): number {
+        return this.#id;
+    }
+
+    printItem(): void {
+        console.log(`${this.title} was published in ${this.year}`);
+        console.log(ReferenceItem.department);
+    }
+    abstract printCitation(): void;
+}
+// const ref = new ReferenceItem(1,'TypeScript', 2020);
+// console.log(ref);
+// ref.printItem();
+// ref.publisher = 'Random Publisher';
+// console.log(ref.publisher);
+// console.log(ref.getID());
+
+// Task 05.02. Extending Classes
+class Encyclopedia extends ReferenceItem {
+    constructor(id: number, title: string, year: number, public edition: number) {
+        super(id, title, year);
+    }
+    printItem(){
+        super.printItem();
+        console.log(`Edition: ${this.edition} (${this.year})`);
+        // Object.getPrototypeOf(this);
+    }
+    printCitation(): void {
+        console.log(`${this.title} -${this.year}`);
+    }
+}
+// const refBook = new Encyclopedia(1,'TypeScript', 2020, 3);
+// console.log(refBook);
+// refBook.printItem();
+
+// Task 05.03. Creating Abstract Classes
+
+// const refBook = new Encyclopedia(1,'TypeScript', 2020, 3);
+// console.log(refBook);
+// refBook.printCitation();
+
+// Task 05.04. Interfaces for Class Types
+class UniversityLibrarian implements Librarian {
+    name: string;
+    email: string;
+    department: string;
+    assistCustomer(custName: string): void {
+        console.log(`${this.name} is assisting ${custName}`);
+    }
+}
+// const myFavoriteLibrarian: Librarian = new UniversityLibrarian();
+// myFavoriteLibrarian.name = 'Tania';
+// myFavoriteLibrarian.assistCustomer('Boris');
+
+// Task 05.05. Intersection and Union Types
+type PersonBook = Person & Book;
+const personBook: PersonBook = {
+    name: 'Tania',
+    email: 'erger@com',
+    author: 'Boris',
+    available: false,
+    category: Category.TypeScript,
+    id: 1,
+    title: 'Mastering of TS',
+    markDamaged: null,
+    pages: 300,
+};
+console.log(personBook);
+
+// Task 06.01. Using Namespaces
+
